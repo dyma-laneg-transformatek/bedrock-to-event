@@ -18,19 +18,22 @@ services:
 
   backend:
     image: bedrock/backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
     volumes:
       - ./backend/backend:/backend
     environment:
-      DB_NAME: postgres
-      DB_USERNAME: postgres
-      DB_PASSWORD: password
-      DB_HOST: postgres
-      DB_PORT: 5432
+      DB_NAME: "postgres"
+      DB_USERNAME: "postgres"
+      DB_PASSWORD: "password"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      KEYCLOAK_ISSUER: "http://localhost:8081/realms/events"
+      KEYCLOAK_KEYS_URL: "http://keycloak:8080/realms/events/protocol/openid-connect/certs"
+      KEYCLOAK_ADMIN_ROLE: "events_admin"
     ports:
-      - 8080:8080
-    build:
-      dockerfile: Dockerfile.backend
-      context: ./backend
+      - "8080:8080"
     restart: on-failure
     depends_on:
       postgres:
@@ -71,6 +74,15 @@ services:
     depends_on:
       postgres:
         condition: service_started
+        
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.1
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    command: start-dev
+    ports:
+      - 8081:8080
 
 volumes:
   postgres:
